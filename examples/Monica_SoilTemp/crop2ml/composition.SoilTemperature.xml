@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE ModelComposition PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelComposition.dtd">
-<ModelComposition name="SoilTemperature" id="Monica_SoilTemp.SoilTemperature" version="1" timestep="1">
+<ModelComposition name="SoilTemperatureComp" id="Monica_SoilTemp.SoilTemperatureComp" version="1" timestep="1">
     <Description>
         <Title>SoilTemperature model</Title>
         <Authors>Michael Berg-Mohnicke</Authors>

@@ -1,9 +1,9 @@
 from datetime import datetime
 from math import *
-from Monica_SoilTemp.soiltemperature import model_soiltemperature
-from Monica_SoilTemp.nosnowsoilsurfacetemperature import model_nosnowsoilsurfacetemperature
-from Monica_SoilTemp.withsnowsoilsurfacetemperature import model_withsnowsoilsurfacetemperature
-def model_soiltemperature(float tmin,
+from .soiltemperature import model_soiltemperature
+from .nosnowsoilsurfacetemperature import model_nosnowsoilsurfacetemperature
+from .withsnowsoilsurfacetemperature import model_withsnowsoilsurfacetemperature
+def model_soiltemperaturecomp(float tmin,
       float tmax,
       float globrad,
       float dampingFactor,
@@ -54,6 +54,6 @@ def model_soiltemperature(float tmin,
     noSnowSoilSurfaceTemperature = soilSurfaceTemperature
     soilSurfaceTemperature = model_withsnowsoilsurfacetemperature( noSnowSoilSurfaceTemperature,soilSurfaceTemperatureBelowSnow,hasSnowCover)
     newSoilTemperature = model_soiltemperature( soilSurfaceTemperature,timeStep,soilMoistureConst,baseTemp,initialSurfaceTemp,densityAir,specificHeatCapacityAir,densityHumus,specificHeatCapacityHumus,densityWater,specificHeatCapacityWater,quartzRawDensity,specificHeatCapacityQuartz,nTau,soilAlbedo,noOfTempLayers,noOfSoilLayers,layerThickness,soilBulkDensity,saturation,soilOrganicMatter,soilTemperature,V,B,volumeMatrix,volumeMatrixOld,matrixPrimaryDiagonal,matrixSecondaryDiagonal,heatConductivity,heatConductivityMean,heatCapacity,solution,matrixDiagonal,matrixLowerTriangle,heatFlow)
-    newSoilTemperature = soilTemperature 
+    soilTemperature = newSoilTemperature
 
     return soilSurfaceTemperature, soilTemperature

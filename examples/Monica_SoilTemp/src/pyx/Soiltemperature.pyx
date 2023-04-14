@@ -1,99 +1,5 @@
 import numpy 
 from math import *
-def model_soiltemperature(float soilSurfaceTemperature,
-                          float timeStep,
-                          float soilMoistureConst,
-                          float baseTemp,
-                          float initialSurfaceTemp,
-                          float densityAir,
-                          float specificHeatCapacityAir,
-                          float densityHumus,
-                          float specificHeatCapacityHumus,
-                          float densityWater,
-                          float specificHeatCapacityWater,
-                          float quartzRawDensity,
-                          float specificHeatCapacityQuartz,
-                          float nTau,
-                          float soilAlbedo,
-                          int noOfTempLayers,
-                          int noOfSoilLayers,
-                          floatlist layerThickness,
-                          floatlist soilBulkDensity,
-                          floatlist saturation,
-                          floatlist soilOrganicMatter,
-                          floatlist soilTemperature,
-                          floatlist V,
-                          floatlist B,
-                          floatlist volumeMatrix,
-                          floatlist volumeMatrixOld,
-                          floatlist matrixPrimaryDiagonal,
-                          floatlist matrixSecondaryDiagonal,
-                          floatlist heatConductivity,
-                          floatlist heatConductivityMean,
-                          floatlist heatCapacity,
-                          floatlist solution,
-                          floatlist matrixDiagonal,
-                          floatlist matrixLowerTriangle,
-                          floatlist heatFlow):
-    """
-
-    Model of soil temperature
-    Author: Michael Berg-Mohnicke
-    Reference: None
-    Institution: ZALF e.V.
-    ExtendedDescription: None
-    ShortDescription: Calculates the soil temperature at all soil layers
-
-    """
-    cdef floatlist newSoilTemperature
-    cdef int groundLayer
-    cdef int bottomLayer
-    groundLayer = noOfTempLayers - 2
-    bottomLayer = noOfTempLayers - 1
-    ##############################################################
-    # Internal Subroutine Numerical Solution - Suckow,F. (1986)
-    ##############################################################
-    #soilSurfaceTemperature = calcSoilSurfaceTemperature(prevDaySoilSurfaceTemperature, tmin, tmax, globrad)
-    heatFlow[0] = soilSurfaceTemperature * B[0] * heatConductivityMean[0] # [J]
-    #assert _heatFlow[i>0] == 0.0;
-    cdef int i
-    for i in range(noOfTempLayers):
-        solution[i] = (volumeMatrixOld[i] + (volumeMatrix[i] - volumeMatrixOld[i]) / layerThickness[i]) * soilTemperature[i] + heatFlow[i]
-    # end subroutine NumericalSolution
-    ########################################################
-    # Internal Subroutine Cholesky Solution Method
-    #
-    # Solution of EX=Z with E tridiagonal and symmetric
-    # according to CHOLESKY (E=LDL')
-    ########################################################
-    # Determination of the lower matrix triangle L and the diagonal matrix D
-    matrixDiagonal[0] = matrixPrimaryDiagonal[0]
-    for i in range(noOfTempLayers): 
-        matrixLowerTriangle[i] = matrixSecondaryDiagonal[i] / matrixDiagonal[i - 1]
-        matrixDiagonal[i] = matrixPrimaryDiagonal[i] - (matrixLowerTriangle[i] * matrixSecondaryDiagonal[i])
-    # Solution of LY=Z
-    for i in range(noOfTempLayers):	
-        solution[i] = solution[i] - (matrixLowerTriangle[i] * solution[i - 1])
-    # Solution of L'X=D(-1)Y
-    solution[bottomLayer] = solution[bottomLayer] / matrixDiagonal[bottomLayer]
-    cdef int j, j_1
-    for i in range(bottomLayer):
-        j = (bottomLayer - 1) - i
-        j_1 = j + 1
-        solution[j] = (solution[j] / matrixDiagonal[j]) \
-            - (matrixLowerTriangle[j_1] * solution[j_1])
-    # end subroutine CholeskyMethod
-    # Internal Subroutine Rearrangement
-    for i in range(noOfTempLayers):
-        soilTemperature[i] = solution[i]
-    for i in range(noOfSoilLayers):
-        volumeMatrixOld[i] = volumeMatrix[i]
-        newSoilTemperature[i] = soilTemperature[i]
-    volumeMatrixOld[groundLayer] = volumeMatrix[groundLayer]
-    volumeMatrixOld[bottomLayer] = volumeMatrix[bottomLayer]
-    return  newSoilTemperature
-
-
 def init_soiltemperature(float timeStep,
                          float soilMoistureConst,
                          float baseTemp,
@@ -249,7 +155,7 @@ def init_soiltemperature(float timeStep,
     ##################################################################
     # Initialising Numerical Solution
     # Suckow,F. (1985): A model serving the calculation of soil
-    # temperatures. Zeitschrift fÃ¼r Meteorologie 35 (1), 66 -70.
+    # temperatures. Zeitschrift für Meteorologie 35 (1), 66 -70.
     ##################################################################
     # Calculation of the mean heat conductivity per layer
     heatConductivityMean[0] = heatConductivity[0]
@@ -274,3 +180,97 @@ def init_soiltemperature(float timeStep,
         matrixPrimaryDiagonal[i] = volumeMatrix[i] \
             - matrixSecondaryDiagonal[i] - matrixSecondaryDiagonal[i + 1] # [J K-1]
     return  soilSurfaceTemperature, soilTemperature, V, B, volumeMatrix, volumeMatrixOld, matrixPrimaryDiagonal, matrixSecondaryDiagonal, heatConductivity, heatConductivityMean, heatCapacity, solution, matrixDiagonal, matrixLowerTriangle, heatFlow
+def model_soiltemperature(float soilSurfaceTemperature,
+                          float timeStep,
+                          float soilMoistureConst,
+                          float baseTemp,
+                          float initialSurfaceTemp,
+                          float densityAir,
+                          float specificHeatCapacityAir,
+                          float densityHumus,
+                          float specificHeatCapacityHumus,
+                          float densityWater,
+                          float specificHeatCapacityWater,
+                          float quartzRawDensity,
+                          float specificHeatCapacityQuartz,
+                          float nTau,
+                          float soilAlbedo,
+                          int noOfTempLayers,
+                          int noOfSoilLayers,
+                          floatlist layerThickness,
+                          floatlist soilBulkDensity,
+                          floatlist saturation,
+                          floatlist soilOrganicMatter,
+                          floatlist soilTemperature,
+                          floatlist V,
+                          floatlist B,
+                          floatlist volumeMatrix,
+                          floatlist volumeMatrixOld,
+                          floatlist matrixPrimaryDiagonal,
+                          floatlist matrixSecondaryDiagonal,
+                          floatlist heatConductivity,
+                          floatlist heatConductivityMean,
+                          floatlist heatCapacity,
+                          floatlist solution,
+                          floatlist matrixDiagonal,
+                          floatlist matrixLowerTriangle,
+                          floatlist heatFlow):
+    """
+
+    Model of soil temperature
+    Author: Michael Berg-Mohnicke
+    Reference: None
+    Institution: ZALF e.V.
+    ExtendedDescription: None
+    ShortDescription: Calculates the soil temperature at all soil layers
+
+    """
+    cdef floatlist newSoilTemperature
+    cdef int groundLayer
+    cdef int bottomLayer
+    groundLayer = noOfTempLayers - 2
+    bottomLayer = noOfTempLayers - 1
+    ##############################################################
+    # Internal Subroutine Numerical Solution - Suckow,F. (1986)
+    ##############################################################
+    #soilSurfaceTemperature = calcSoilSurfaceTemperature(prevDaySoilSurfaceTemperature, tmin, tmax, globrad)
+    heatFlow[0] = soilSurfaceTemperature * B[0] * heatConductivityMean[0] # [J]
+    #assert _heatFlow[i>0] == 0.0;
+    cdef int i
+    for i in range(noOfTempLayers):
+        solution[i] = (volumeMatrixOld[i] + (volumeMatrix[i] - volumeMatrixOld[i]) / layerThickness[i]) * soilTemperature[i] + heatFlow[i]
+    # end subroutine NumericalSolution
+    ########################################################
+    # Internal Subroutine Cholesky Solution Method
+    #
+    # Solution of EX=Z with E tridiagonal and symmetric
+    # according to CHOLESKY (E=LDL')
+    ########################################################
+    # Determination of the lower matrix triangle L and the diagonal matrix D
+    matrixDiagonal[0] = matrixPrimaryDiagonal[0]
+    for i in range(noOfTempLayers): 
+        matrixLowerTriangle[i] = matrixSecondaryDiagonal[i] / matrixDiagonal[i - 1]
+        matrixDiagonal[i] = matrixPrimaryDiagonal[i] - (matrixLowerTriangle[i] * matrixSecondaryDiagonal[i])
+    # Solution of LY=Z
+    for i in range(noOfTempLayers):	
+        solution[i] = solution[i] - (matrixLowerTriangle[i] * solution[i - 1])
+    # Solution of L'X=D(-1)Y
+    solution[bottomLayer] = solution[bottomLayer] / matrixDiagonal[bottomLayer]
+    cdef int j, j_1
+    for i in range(bottomLayer):
+        j = (bottomLayer - 1) - i
+        j_1 = j + 1
+        solution[j] = (solution[j] / matrixDiagonal[j]) \
+            - (matrixLowerTriangle[j_1] * solution[j_1])
+    # end subroutine CholeskyMethod
+    # Internal Subroutine Rearrangement
+    for i in range(noOfTempLayers):
+        soilTemperature[i] = solution[i]
+    for i in range(noOfSoilLayers):
+        volumeMatrixOld[i] = volumeMatrix[i]
+        newSoilTemperature[i] = soilTemperature[i]
+    volumeMatrixOld[groundLayer] = volumeMatrix[groundLayer]
+    volumeMatrixOld[bottomLayer] = volumeMatrix[bottomLayer]
+    return  newSoilTemperature
+
+
